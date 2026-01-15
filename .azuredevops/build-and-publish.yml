@@ -196,11 +196,12 @@ stages:
                 git push origin "v$VERSION" --force 2>/dev/null || echo "Tag already on origin"
 
                 # Push tag to GitHub for the release
-                git remote add github "https://$(GitHubPAT)@github.com/$(githubRepo).git" 2>/dev/null || true
+                git remote add github "https://${GITHUB_PAT}@github.com/${GITHUB_REPO}.git" 2>/dev/null || true
                 git push github "v$VERSION" --force
                 echo "Tag v$VERSION pushed to GitHub"
             env:
-              GitHubPAT: $(GitHubPAT)
+              GITHUB_PAT: $(GitHubPAT)
+              GITHUB_REPO: $(githubRepo)
 
 - stage: GitHubRelease
   displayName: 'Create GitHub Release'
