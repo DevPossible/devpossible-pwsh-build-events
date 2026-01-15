@@ -1,7 +1,7 @@
 # Build and Publish NuGet Package Pipeline
 # Uses GitVersion for conventional commit versioning
-# Publishes to nuget.org on main branch builds
-# Creates GitHub Release after successful publish
+# Mirrors to GitHub, publishes to nuget.org, creates GitHub Release
+# Flow: Build -> Mirror to GitHub -> Publish to NuGet -> GitHub Release
 
 trigger:
   branches:
@@ -19,6 +19,7 @@ pool:
 variables:
   buildConfiguration: 'Release'
   projectPath: 'src/DevPossible.PwshBuildEvents/DevPossible.PwshBuildEvents.csproj'
+  githubRepo: 'DevPossible/devpossible-pwsh-build-events'
 
 stages:
 - stage: Build
@@ -96,11 +97,45 @@ stages:
         ArtifactName: 'version'
         publishLocation: 'Container'
 
+- stage: Mirror
+  displayName: 'Mirror to GitHub'
+  dependsOn: Build
+  # Only mirror on main branch commits (PR merges), not on PR builds
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - job: MirrorToGitHub
+    displayName: 'Push to GitHub'
+    steps:
+    - checkout: self
+      fetchDepth: 0
+      persistCredentials: true
+
+    - task: Bash@3
+      displayName: 'Mirror Repository'
+      inputs:
+        targetType: inline
+        script: |
+          git config user.email "pipelines@devpossible.com"
+          git config user.name "Azure Pipelines"
+
+          echo "Adding GitHub remote..."
+          git remote add github "https://$(GitHubPAT)@github.com/$(githubRepo).git"
+
+          echo "Pushing all branches..."
+          git push github --all --force
+
+          echo "Pushing tags..."
+          git push github --tags --force
+
+          echo "Mirror complete!"
+      env:
+        GitHubPAT: $(GitHubPAT)
+
 - stage: Publish
   displayName: 'Publish to NuGet.org & GitHub'
-  dependsOn: Build
-  # Only publish on main branch commits (PR merges), not on PR builds
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn: Mirror
+  # Only publish after successful mirror
+  condition: succeeded()
   jobs:
   - deployment: PublishNuGet
     displayName: 'Publish to NuGet.org'
