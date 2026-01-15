@@ -36,11 +36,11 @@ The sample scripts are ready to use. Just customize them with your build logic:
 
 **Properties/prebuild.ps1**
 ```powershell
-# Build properties are available via environment variables (prefixed with PWSH_)
-$ProjectDir      = $env:PWSH_PROJECT_DIR
-$ProjectName     = $env:PWSH_PROJECT_NAME
-$Configuration   = $env:PWSH_CONFIGURATION
-$TargetFramework = $env:PWSH_TARGET_FRAMEWORK
+# Build properties are available via environment variables (prefixed with MBLD_)
+$ProjectDir      = $env:MBLD_PROJECT_DIR
+$ProjectName     = $env:MBLD_PROJECT_NAME
+$Configuration   = $env:MBLD_CONFIGURATION
+$TargetFramework = $env:MBLD_TARGET_FRAMEWORK
 
 Write-Host "Running pre-build for $ProjectName ($Configuration)"
 # Your pre-build logic here
@@ -48,13 +48,13 @@ Write-Host "Running pre-build for $ProjectName ($Configuration)"
 
 **Properties/postbuild.ps1**
 ```powershell
-# Build properties are available via environment variables (prefixed with PWSH_)
-$ProjectDir      = $env:PWSH_PROJECT_DIR
-$ProjectName     = $env:PWSH_PROJECT_NAME
-$Configuration   = $env:PWSH_CONFIGURATION
-$TargetFramework = $env:PWSH_TARGET_FRAMEWORK
-$TargetDir       = $env:PWSH_TARGET_DIR
-$TargetPath      = $env:PWSH_TARGET_PATH
+# Build properties are available via environment variables (prefixed with MBLD_)
+$ProjectDir      = $env:MBLD_PROJECT_DIR
+$ProjectName     = $env:MBLD_PROJECT_NAME
+$Configuration   = $env:MBLD_CONFIGURATION
+$TargetFramework = $env:MBLD_TARGET_FRAMEWORK
+$TargetDir       = $env:MBLD_TARGET_DIR
+$TargetPath      = $env:MBLD_TARGET_PATH
 
 Write-Host "Running post-build for $ProjectName ($Configuration)"
 # Your post-build logic here
@@ -77,72 +77,72 @@ Running post-build for MyProject (Debug)
 
 ## Available Environment Variables
 
-All MSBuild properties are passed to your scripts via environment variables (prefixed with `PWSH_`). This mirrors the macros available in Visual Studio's built-in build events.
+All MSBuild properties are passed to your scripts via environment variables (prefixed with `MBLD_`). This mirrors the macros available in Visual Studio's built-in build events.
 
 ### Project Information
 
 | Environment Variable | Description | Example |
 |---------------------|-------------|---------|
-| `PWSH_PROJECT_DIR` | Project root directory | `C:\Projects\MyApp` |
-| `PWSH_PROJECT_NAME` | Project name | `MyApp` |
-| `PWSH_PROJECT_PATH` | Full path to project file | `C:\Projects\MyApp\MyApp.csproj` |
-| `PWSH_PROJECT_FILE_NAME` | Project file name | `MyApp.csproj` |
-| `PWSH_PROJECT_EXT` | Project file extension | `.csproj` |
-| `PWSH_ASSEMBLY_NAME` | Assembly name | `MyApp` |
-| `PWSH_ROOT_NAMESPACE` | Root namespace | `MyApp` |
-| `PWSH_OUTPUT_TYPE` | Output type | `Exe`, `Library` |
+| `MBLD_PROJECT_DIR` | Project root directory | `C:\Projects\MyApp` |
+| `MBLD_PROJECT_NAME` | Project name | `MyApp` |
+| `MBLD_PROJECT_PATH` | Full path to project file | `C:\Projects\MyApp\MyApp.csproj` |
+| `MBLD_PROJECT_FILE_NAME` | Project file name | `MyApp.csproj` |
+| `MBLD_PROJECT_EXT` | Project file extension | `.csproj` |
+| `MBLD_ASSEMBLY_NAME` | Assembly name | `MyApp` |
+| `MBLD_ROOT_NAMESPACE` | Root namespace | `MyApp` |
+| `MBLD_OUTPUT_TYPE` | Output type | `Exe`, `Library` |
 
 ### Build Configuration
 
 | Environment Variable | Description | Example |
 |---------------------|-------------|---------|
-| `PWSH_CONFIGURATION` | Build configuration | `Debug`, `Release` |
-| `PWSH_PLATFORM` | Platform | `AnyCPU`, `x64` |
-| `PWSH_PLATFORM_TARGET` | Platform target | `AnyCPU`, `x64` |
-| `PWSH_TARGET_FRAMEWORK` | Target framework | `net8.0` |
-| `PWSH_TARGET_FRAMEWORKS` | All target frameworks (comma-separated) | `net6.0,net8.0` |
-| `PWSH_RUNTIME_IDENTIFIER` | Runtime identifier | `win-x64`, `linux-x64` |
-| `PWSH_DEFINE_CONSTANTS` | Defined constants (comma-separated) | `DEBUG,TRACE` |
-| `PWSH_OPTIMIZE` | Optimization enabled | `true`, `false` |
-| `PWSH_DEBUG_TYPE` | Debug symbol type | `portable`, `full` |
-| `PWSH_DEBUG_SYMBOLS` | Debug symbols enabled | `true`, `false` |
-| `PWSH_LANGVERSION` | C# language version | `12.0`, `latest` |
-| `PWSH_NULLABLE` | Nullable context | `enable`, `disable` |
-| `PWSH_IMPLICIT_USINGS` | Implicit usings | `enable`, `disable` |
+| `MBLD_CONFIGURATION` | Build configuration | `Debug`, `Release` |
+| `MBLD_PLATFORM` | Platform | `AnyCPU`, `x64` |
+| `MBLD_PLATFORM_TARGET` | Platform target | `AnyCPU`, `x64` |
+| `MBLD_TARGET_FRAMEWORK` | Target framework | `net8.0` |
+| `MBLD_TARGET_FRAMEWORKS` | All target frameworks (comma-separated) | `net6.0,net8.0` |
+| `MBLD_RUNTIME_IDENTIFIER` | Runtime identifier | `win-x64`, `linux-x64` |
+| `MBLD_DEFINE_CONSTANTS` | Defined constants (comma-separated) | `DEBUG,TRACE` |
+| `MBLD_OPTIMIZE` | Optimization enabled | `true`, `false` |
+| `MBLD_DEBUG_TYPE` | Debug symbol type | `portable`, `full` |
+| `MBLD_DEBUG_SYMBOLS` | Debug symbols enabled | `true`, `false` |
+| `MBLD_LANGVERSION` | C# language version | `12.0`, `latest` |
+| `MBLD_NULLABLE` | Nullable context | `enable`, `disable` |
+| `MBLD_IMPLICIT_USINGS` | Implicit usings | `enable`, `disable` |
 
 ### Output Paths
 
 | Environment Variable | Description | Available |
 |---------------------|-------------|-----------|
-| `PWSH_OUT_DIR` | Output directory | Both |
-| `PWSH_BASE_OUTPUT_PATH` | Base output path (bin/) | Both |
-| `PWSH_INTERMEDIATE_OUTPUT_PATH` | Intermediate path (obj/) | Both |
-| `PWSH_BASE_INTERMEDIATE_OUTPUT_PATH` | Base intermediate path | Both |
-| `PWSH_TARGET_DIR` | Target output directory | **Post-build only** |
-| `PWSH_TARGET_PATH` | Full path to output assembly | **Post-build only** |
-| `PWSH_TARGET_FILE_NAME` | Output file name with extension | **Post-build only** |
-| `PWSH_TARGET_NAME` | Output file name without extension | **Post-build only** |
-| `PWSH_TARGET_EXT` | Output file extension | **Post-build only** |
+| `MBLD_OUT_DIR` | Output directory | Both |
+| `MBLD_BASE_OUTPUT_PATH` | Base output path (bin/) | Both |
+| `MBLD_INTERMEDIATE_OUTPUT_PATH` | Intermediate path (obj/) | Both |
+| `MBLD_BASE_INTERMEDIATE_OUTPUT_PATH` | Base intermediate path | Both |
+| `MBLD_TARGET_DIR` | Target output directory | **Post-build only** |
+| `MBLD_TARGET_PATH` | Full path to output assembly | **Post-build only** |
+| `MBLD_TARGET_FILE_NAME` | Output file name with extension | **Post-build only** |
+| `MBLD_TARGET_NAME` | Output file name without extension | **Post-build only** |
+| `MBLD_TARGET_EXT` | Output file extension | **Post-build only** |
 
 ### Solution Information
 
 | Environment Variable | Description | Example |
 |---------------------|-------------|---------|
-| `PWSH_SOLUTION_DIR` | Solution directory | `C:\Projects\` |
-| `PWSH_SOLUTION_NAME` | Solution name | `MySolution` |
-| `PWSH_SOLUTION_PATH` | Full path to solution file | `C:\Projects\MySolution.sln` |
-| `PWSH_SOLUTION_FILE_NAME` | Solution file name | `MySolution.sln` |
-| `PWSH_SOLUTION_EXT` | Solution file extension | `.sln` |
+| `MBLD_SOLUTION_DIR` | Solution directory | `C:\Projects\` |
+| `MBLD_SOLUTION_NAME` | Solution name | `MySolution` |
+| `MBLD_SOLUTION_PATH` | Full path to solution file | `C:\Projects\MySolution.sln` |
+| `MBLD_SOLUTION_FILE_NAME` | Solution file name | `MySolution.sln` |
+| `MBLD_SOLUTION_EXT` | Solution file extension | `.sln` |
 
 ### Versioning
 
 | Environment Variable | Description | Example |
 |---------------------|-------------|---------|
-| `PWSH_VERSION` | Package/assembly version | `1.0.0` |
-| `PWSH_ASSEMBLY_VERSION` | Assembly version | `1.0.0.0` |
-| `PWSH_FILE_VERSION` | File version | `1.0.0.0` |
-| `PWSH_INFORMATIONAL_VERSION` | Informational version | `1.0.0+abc123` |
-| `PWSH_PACKAGE_VERSION` | NuGet package version | `1.0.0` |
+| `MBLD_VERSION` | Package/assembly version | `1.0.0` |
+| `MBLD_ASSEMBLY_VERSION` | Assembly version | `1.0.0.0` |
+| `MBLD_FILE_VERSION` | File version | `1.0.0.0` |
+| `MBLD_INFORMATIONAL_VERSION` | Informational version | `1.0.0+abc123` |
+| `MBLD_PACKAGE_VERSION` | NuGet package version | `1.0.0` |
 
 > **Note:** Variables containing semicolons (like `DefineConstants` and `TargetFrameworks`) are automatically converted to comma-separated values.
 
@@ -152,32 +152,32 @@ If you're migrating from Visual Studio's built-in build events, here's how the m
 
 | VS Build Event Macro | Environment Variable |
 |---------------------|---------------------|
-| `$(ProjectDir)` | `$env:PWSH_PROJECT_DIR` |
-| `$(ProjectName)` | `$env:PWSH_PROJECT_NAME` |
-| `$(ProjectPath)` | `$env:PWSH_PROJECT_PATH` |
-| `$(ProjectFileName)` | `$env:PWSH_PROJECT_FILE_NAME` |
-| `$(Configuration)` | `$env:PWSH_CONFIGURATION` |
-| `$(Platform)` | `$env:PWSH_PLATFORM` |
-| `$(TargetDir)` | `$env:PWSH_TARGET_DIR` |
-| `$(TargetPath)` | `$env:PWSH_TARGET_PATH` |
-| `$(TargetFileName)` | `$env:PWSH_TARGET_FILE_NAME` |
-| `$(TargetName)` | `$env:PWSH_TARGET_NAME` |
-| `$(TargetExt)` | `$env:PWSH_TARGET_EXT` |
-| `$(OutDir)` | `$env:PWSH_OUT_DIR` |
-| `$(SolutionDir)` | `$env:PWSH_SOLUTION_DIR` |
-| `$(SolutionName)` | `$env:PWSH_SOLUTION_NAME` |
-| `$(SolutionPath)` | `$env:PWSH_SOLUTION_PATH` |
+| `$(ProjectDir)` | `$env:MBLD_PROJECT_DIR` |
+| `$(ProjectName)` | `$env:MBLD_PROJECT_NAME` |
+| `$(ProjectPath)` | `$env:MBLD_PROJECT_PATH` |
+| `$(ProjectFileName)` | `$env:MBLD_PROJECT_FILE_NAME` |
+| `$(Configuration)` | `$env:MBLD_CONFIGURATION` |
+| `$(Platform)` | `$env:MBLD_PLATFORM` |
+| `$(TargetDir)` | `$env:MBLD_TARGET_DIR` |
+| `$(TargetPath)` | `$env:MBLD_TARGET_PATH` |
+| `$(TargetFileName)` | `$env:MBLD_TARGET_FILE_NAME` |
+| `$(TargetName)` | `$env:MBLD_TARGET_NAME` |
+| `$(TargetExt)` | `$env:MBLD_TARGET_EXT` |
+| `$(OutDir)` | `$env:MBLD_OUT_DIR` |
+| `$(SolutionDir)` | `$env:MBLD_SOLUTION_DIR` |
+| `$(SolutionName)` | `$env:MBLD_SOLUTION_NAME` |
+| `$(SolutionPath)` | `$env:MBLD_SOLUTION_PATH` |
 
 ## Common Examples
 
 ### Copy output to a shared folder (postbuild.ps1)
 
 ```powershell
-$destination = "\\server\builds\$env:PWSH_PROJECT_NAME\$env:PWSH_CONFIGURATION"
+$destination = "\\server\builds\$env:MBLD_PROJECT_NAME\$env:MBLD_CONFIGURATION"
 if (-not (Test-Path $destination)) {
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
 }
-Copy-Item $env:PWSH_TARGET_PATH -Destination $destination -Force
+Copy-Item $env:MBLD_TARGET_PATH -Destination $destination -Force
 Write-Host "Copied to $destination"
 ```
 
@@ -186,19 +186,19 @@ Write-Host "Copied to $destination"
 ```powershell
 $buildInfo = @{
     BuildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Configuration = $env:PWSH_CONFIGURATION
-    Framework = $env:PWSH_TARGET_FRAMEWORK
-    Version = $env:PWSH_VERSION
+    Configuration = $env:MBLD_CONFIGURATION
+    Framework = $env:MBLD_TARGET_FRAMEWORK
+    Version = $env:MBLD_VERSION
     Machine = $env:COMPUTERNAME
     User = $env:USERNAME
 }
-$buildInfo | ConvertTo-Json | Set-Content "$env:PWSH_PROJECT_DIR\BuildInfo.json"
+$buildInfo | ConvertTo-Json | Set-Content "$env:MBLD_PROJECT_DIR\BuildInfo.json"
 ```
 
 ### Run only in Release mode (postbuild.ps1)
 
 ```powershell
-if ($env:PWSH_CONFIGURATION -ne 'Release') {
+if ($env:MBLD_CONFIGURATION -ne 'Release') {
     Write-Host "Skipping - Release build only"
     exit 0
 }
@@ -211,12 +211,12 @@ Write-Host "Running release post-build tasks..."
 
 ```powershell
 # Copy config files
-Copy-Item "$env:PWSH_PROJECT_DIR\config\*.json" -Destination $env:PWSH_TARGET_DIR -Force
+Copy-Item "$env:MBLD_PROJECT_DIR\config\*.json" -Destination $env:MBLD_TARGET_DIR -Force
 
 # Copy native DLLs
-$nativeDir = "$env:PWSH_PROJECT_DIR\native\$env:PWSH_PLATFORM"
+$nativeDir = "$env:MBLD_PROJECT_DIR\native\$env:MBLD_PLATFORM"
 if (Test-Path $nativeDir) {
-    Copy-Item "$nativeDir\*.dll" -Destination $env:PWSH_TARGET_DIR -Force
+    Copy-Item "$nativeDir\*.dll" -Destination $env:MBLD_TARGET_DIR -Force
 }
 ```
 
