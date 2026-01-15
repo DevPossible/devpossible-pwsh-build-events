@@ -55,7 +55,7 @@
   <!--
     Common environment variables for both pre-build and post-build scripts.
     These mirror the macros available in Visual Studio's built-in build events.
-    All variables are prefixed with PWSH_ to avoid conflicts.
+    All variables are prefixed with MBLD_ to avoid conflicts.
 
     Note: Variables containing semicolons (like DefineConstants, TargetFrameworks)
     are converted to comma-separated values to avoid parsing issues.
@@ -68,39 +68,39 @@
 
   <ItemGroup>
     <_PwshCommonEnvVars Include="
-      PWSH_PROJECT_DIR=$(MSBuildProjectDirectory);
-      PWSH_PROJECT_NAME=$(MSBuildProjectName);
-      PWSH_PROJECT_FILE_NAME=$(MSBuildProjectFile);
-      PWSH_PROJECT_PATH=$(MSBuildProjectFullPath);
-      PWSH_PROJECT_EXT=$(MSBuildProjectExtension);
-      PWSH_CONFIGURATION=$(Configuration);
-      PWSH_PLATFORM=$(Platform);
-      PWSH_PLATFORM_TARGET=$(PlatformTarget);
-      PWSH_TARGET_FRAMEWORK=$(TargetFramework);
-      PWSH_TARGET_FRAMEWORKS=$(_PwshTargetFrameworks);
-      PWSH_RUNTIME_IDENTIFIER=$(RuntimeIdentifier);
-      PWSH_ASSEMBLY_NAME=$(AssemblyName);
-      PWSH_ROOT_NAMESPACE=$(RootNamespace);
-      PWSH_OUTPUT_TYPE=$(OutputType);
-      PWSH_SOLUTION_DIR=$(SolutionDir);
-      PWSH_SOLUTION_NAME=$(SolutionName);
-      PWSH_SOLUTION_FILE_NAME=$(SolutionFileName);
-      PWSH_SOLUTION_PATH=$(SolutionPath);
-      PWSH_SOLUTION_EXT=$(SolutionExt);
-      PWSH_INTERMEDIATE_OUTPUT_PATH=$(IntermediateOutputPath);
-      PWSH_BASE_INTERMEDIATE_OUTPUT_PATH=$(BaseIntermediateOutputPath);
-      PWSH_DEFINE_CONSTANTS=$(_PwshDefineConstants);
-      PWSH_DEBUG_SYMBOLS=$(DebugSymbols);
-      PWSH_DEBUG_TYPE=$(DebugType);
-      PWSH_OPTIMIZE=$(Optimize);
-      PWSH_LANGVERSION=$(LangVersion);
-      PWSH_NULLABLE=$(Nullable);
-      PWSH_IMPLICIT_USINGS=$(ImplicitUsings);
-      PWSH_VERSION=$(Version);
-      PWSH_ASSEMBLY_VERSION=$(AssemblyVersion);
-      PWSH_FILE_VERSION=$(FileVersion);
-      PWSH_INFORMATIONAL_VERSION=$(InformationalVersion);
-      PWSH_PACKAGE_VERSION=$(PackageVersion)" />
+      MBLD_PROJECT_DIR=$(MSBuildProjectDirectory);
+      MBLD_PROJECT_NAME=$(MSBuildProjectName);
+      MBLD_PROJECT_FILE_NAME=$(MSBuildProjectFile);
+      MBLD_PROJECT_PATH=$(MSBuildProjectFullPath);
+      MBLD_PROJECT_EXT=$(MSBuildProjectExtension);
+      MBLD_CONFIGURATION=$(Configuration);
+      MBLD_PLATFORM=$(Platform);
+      MBLD_PLATFORM_TARGET=$(PlatformTarget);
+      MBLD_TARGET_FRAMEWORK=$(TargetFramework);
+      MBLD_TARGET_FRAMEWORKS=$(_PwshTargetFrameworks);
+      MBLD_RUNTIME_IDENTIFIER=$(RuntimeIdentifier);
+      MBLD_ASSEMBLY_NAME=$(AssemblyName);
+      MBLD_ROOT_NAMESPACE=$(RootNamespace);
+      MBLD_OUTPUT_TYPE=$(OutputType);
+      MBLD_SOLUTION_DIR=$(SolutionDir);
+      MBLD_SOLUTION_NAME=$(SolutionName);
+      MBLD_SOLUTION_FILE_NAME=$(SolutionFileName);
+      MBLD_SOLUTION_PATH=$(SolutionPath);
+      MBLD_SOLUTION_EXT=$(SolutionExt);
+      MBLD_INTERMEDIATE_OUTPUT_PATH=$(IntermediateOutputPath);
+      MBLD_BASE_INTERMEDIATE_OUTPUT_PATH=$(BaseIntermediateOutputPath);
+      MBLD_DEFINE_CONSTANTS=$(_PwshDefineConstants);
+      MBLD_DEBUG_SYMBOLS=$(DebugSymbols);
+      MBLD_DEBUG_TYPE=$(DebugType);
+      MBLD_OPTIMIZE=$(Optimize);
+      MBLD_LANGVERSION=$(LangVersion);
+      MBLD_NULLABLE=$(Nullable);
+      MBLD_IMPLICIT_USINGS=$(ImplicitUsings);
+      MBLD_VERSION=$(Version);
+      MBLD_ASSEMBLY_VERSION=$(AssemblyVersion);
+      MBLD_FILE_VERSION=$(FileVersion);
+      MBLD_INFORMATIONAL_VERSION=$(InformationalVersion);
+      MBLD_PACKAGE_VERSION=$(PackageVersion)" />
   </ItemGroup>
 
   <!--
@@ -120,8 +120,8 @@
           StandardOutputImportance="high"
           StandardErrorImportance="high"
           EnvironmentVariables="@(_PwshCommonEnvVars);
-            PWSH_OUT_DIR=$(OutDir);
-            PWSH_BASE_OUTPUT_PATH=$(BaseOutputPath)" />
+            MBLD_OUT_DIR=$(OutDir);
+            MBLD_BASE_OUTPUT_PATH=$(BaseOutputPath)" />
   </Target>
 
   <!--
@@ -141,13 +141,13 @@
           StandardOutputImportance="high"
           StandardErrorImportance="high"
           EnvironmentVariables="@(_PwshCommonEnvVars);
-            PWSH_OUT_DIR=$(OutDir);
-            PWSH_BASE_OUTPUT_PATH=$(BaseOutputPath);
-            PWSH_TARGET_DIR=$(TargetDir);
-            PWSH_TARGET_PATH=$(TargetPath);
-            PWSH_TARGET_FILE_NAME=$(TargetFileName);
-            PWSH_TARGET_NAME=$(TargetName);
-            PWSH_TARGET_EXT=$(TargetExt)" />
+            MBLD_OUT_DIR=$(OutDir);
+            MBLD_BASE_OUTPUT_PATH=$(BaseOutputPath);
+            MBLD_TARGET_DIR=$(TargetDir);
+            MBLD_TARGET_PATH=$(TargetPath);
+            MBLD_TARGET_FILE_NAME=$(TargetFileName);
+            MBLD_TARGET_NAME=$(TargetName);
+            MBLD_TARGET_EXT=$(TargetExt)" />
   </Target>
 
 </Project>
