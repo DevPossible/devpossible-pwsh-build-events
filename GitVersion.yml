@@ -26,19 +26,13 @@ branches:
     label: ''
     increment: Patch
     regex: ^main$
-    source-branches: []
-    tracks-release-branches: false
     is-release-branch: true
 
   pull-request:
     mode: ContinuousDelivery
-    label: pr
-    label-number-pattern: '[/-](?<number>\d+)'
+    label: 'pr.{BranchName}'
     increment: Inherit
     regex: ^(pull|pull-requests|pr)[/-]
-
-# Don't increment if HEAD is already tagged
-prevent-increment-when-current-commit-tagged: true
 
 # Assembly info format
 assembly-versioning-scheme: MajorMinorPatch
