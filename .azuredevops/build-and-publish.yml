@@ -232,7 +232,6 @@ stages:
         gitHubConnection: 'github.com_DevPossible'
         repositoryName: 'DevPossible/devpossible-pwsh-build-events'
         action: 'edit'
-        target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
         tag: 'v$(ReleaseVersion)'
         title: 'v$(ReleaseVersion)'
