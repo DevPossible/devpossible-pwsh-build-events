@@ -1,4 +1,4 @@
-# Build and Publish NuGet Package Pipeline
+# Publish DevPossible.PwshBuildEvents
 # Uses GitVersion for conventional commit versioning
 # Mirrors to GitHub, publishes to nuget.org, creates GitHub Release
 # Flow: Build -> Mirror to GitHub -> Publish to NuGet -> GitHub Release
@@ -110,6 +110,14 @@ stages:
       fetchDepth: 0
       persistCredentials: true
 
+    - task: AzureKeyVault@2
+      displayName: 'Get Secrets from Key Vault'
+      inputs:
+        azureSubscription: 'rg-devops'
+        KeyVaultName: 'kv-devpossible'
+        SecretsFilter: 'GITHUB-PAT'
+        RunAsPreJob: false
+
     - task: Bash@3
       displayName: 'Mirror Repository'
       inputs:
@@ -119,7 +127,7 @@ stages:
           git config user.name "Azure Pipelines"
 
           echo "Adding GitHub remote..."
-          git remote add github "https://$(GitHubPAT)@github.com/$(githubRepo).git"
+          git remote add github "https://${GITHUB_PAT}@github.com/$(githubRepo).git"
 
           echo "Pushing all branches..."
           git push github --all --force
@@ -129,7 +137,7 @@ stages:
 
           echo "Mirror complete!"
       env:
-        GitHubPAT: $(GitHubPAT)
+        GITHUB_PAT: $(GITHUB-PAT)
 
 - stage: Publish
   displayName: 'Publish to NuGet.org'
@@ -153,6 +161,14 @@ stages:
           - download: current
             artifact: version
 
+          - task: AzureKeyVault@2
+            displayName: 'Get Secrets from Key Vault'
+            inputs:
+              azureSubscription: 'rg-devops'
+              KeyVaultName: 'kv-devpossible'
+              SecretsFilter: 'GITHUB-PAT,NUGET-API-KEY'
+              RunAsPreJob: false
+
           - task: Bash@3
             name: ReadVersion
             displayName: 'Read Version'
@@ -169,11 +185,11 @@ stages:
               targetType: inline
               script: |
                 dotnet nuget push "$(Pipeline.Workspace)/packages/*.nupkg" \
-                  --api-key "$(NuGetApiKey)" \
+                  --api-key "${NUGET_API_KEY}" \
                   --source "https://api.nuget.org/v3/index.json" \
                   --skip-duplicate
             env:
-              NuGetApiKey: $(NuGetApiKey)
+              NUGET_API_KEY: $(NUGET-API-KEY)
 
           - task: Bash@3
             displayName: 'Tag Release'
@@ -196,12 +212,11 @@ stages:
                 git push origin "v$VERSION" --force 2>/dev/null || echo "Tag already on origin"
 
                 # Push tag to GitHub for the release
-                git remote add github "https://${GITHUB_PAT}@github.com/${GITHUB_REPO}.git" 2>/dev/null || true
+                git remote add github "https://${GITHUB_PAT}@github.com/$(githubRepo).git" 2>/dev/null || true
                 git push github "v$VERSION" --force
                 echo "Tag v$VERSION pushed to GitHub"
             env:
-              GITHUB_PAT: $(GitHubPAT)
-              GITHUB_REPO: $(githubRepo)
+              GITHUB_PAT: $(GITHUB-PAT)
 
 - stage: GitHubRelease
   displayName: 'Create GitHub Release'
