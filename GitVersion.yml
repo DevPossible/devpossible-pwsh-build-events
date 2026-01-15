@@ -1,74 +1,54 @@
 # GitVersion Configuration
-# Uses Conventional Commits for version calculation
+# Calculates version from tags + conventional commits
+# No commits made - only reads git history
 # See: https://gitversion.net/docs/reference/configuration
 
-# Start at 1.0.0 for initial release
+# Use ContinuousDeployment for automatic versioning on main
+mode: ContinuousDeployment
+
+# Starting version if no tags exist
 next-version: 1.0.0
 
-# Use mainline mode for simpler versioning on main branch
-mode: Mainline
+# Tag prefix for version tags
+tag-prefix: 'v'
+
+# Conventional Commits - determine version bump from commit messages
+# Breaking change (major): feat!: or BREAKING CHANGE: in body
+# Feature (minor): feat:
+# Fix (patch): fix:
+major-version-bump-message: '(\+semver:\s?(major|breaking))|(^(feat|fix|refactor|perf|build|ci|docs|style|test|chore)(\(.+\))?!:)|(BREAKING CHANGE:)'
+minor-version-bump-message: '(\+semver:\s?minor)|(^feat(\(.+\))?:)'
+patch-version-bump-message: '(\+semver:\s?patch)|(^fix(\(.+\))?:)'
+no-bump-message: '(\+semver:\s?(none|skip))'
+
+# Use commit messages to determine increment
+commit-message-incrementing: Enabled
 
 # Branch configuration
 branches:
   main:
-    regex: ^main$
     mode: ContinuousDeployment
     tag: ''
     increment: Patch
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
+    regex: ^main$
     source-branches: []
-    is-source-branch-for: []
-
-  feature:
-    regex: ^features?[/-]
-    mode: ContinuousDelivery
-    tag: alpha
-    increment: Minor
-    source-branches:
-      - main
-
-  bugfix:
-    regex: ^(bug)?fix(es)?[/-]
-    mode: ContinuousDelivery
-    tag: beta
-    increment: Patch
-    source-branches:
-      - main
-
-  release:
-    regex: ^releases?[/-]
-    mode: ContinuousDelivery
-    tag: rc
-    increment: None
-    source-branches:
-      - main
+    tracks-release-branches: false
+    is-release-branch: true
 
   pull-request:
-    regex: ^(pull|pull\-requests|pr)[/-]
     mode: ContinuousDelivery
     tag: pr
+    tag-number-pattern: '[/-](?<number>\d+)'
     increment: Inherit
-    source-branches:
-      - main
-      - feature
-      - bugfix
+    regex: ^(pull|pull-requests|pr)[/-]
 
-# Conventional Commits configuration
-major-version-bump-message: '^(feat|fix|refactor|perf|build|ci|docs|style|test|chore)(\(.+\))?!:|BREAKING CHANGE:'
-minor-version-bump-message: '^feat(\(.+\))?:'
-patch-version-bump-message: '^fix(\(.+\))?:'
+# Don't increment if HEAD is already tagged
+prevent-increment-when-current-commit-tagged: true
 
-# Commit message incrementing
-commit-message-incrementing: Enabled
-
-# Tag prefix (if using tags like v1.0.0)
-tag-prefix: 'v'
-
-# Assembly versioning
+# Assembly info format
 assembly-versioning-scheme: MajorMinorPatch
-assembly-file-versioning-scheme: MajorMinorPatchTag
+assembly-file-versioning-scheme: MajorMinorPatch
 assembly-informational-format: '{SemVer}+{ShortSha}'
 
-# Update build number in Azure DevOps
+# Update Azure DevOps build number
 update-build-number: true

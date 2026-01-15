@@ -35,6 +35,7 @@ stages:
         versionSpec: '6.x'
 
     - task: gitversion/execute@3
+      name: GitVersion
       displayName: 'Calculate Version'
       inputs:
         useConfigFile: true
@@ -93,6 +94,9 @@ stages:
   dependsOn: Build
   # Only publish on main branch commits (PR merges), not on PR builds
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+  variables:
+    # Get version from Build stage
+    GitVersion.NuGetVersion: $[ stageDependencies.Build.Build.outputs['GitVersion.NuGetVersion'] ]
   jobs:
   - deployment: PublishNuGet
     displayName: 'Publish to NuGet.org'
@@ -101,6 +105,10 @@ stages:
       runOnce:
         deploy:
           steps:
+          - checkout: self
+            persistCredentials: true
+            fetchDepth: 0
+
           - download: current
             artifact: packages
 
@@ -111,3 +119,21 @@ stages:
               packagesToPush: '$(Pipeline.Workspace)/packages/*.nupkg'
               nuGetFeedType: 'external'
               publishFeedCredentials: 'NuGet.org'
+
+          # Tag the repo after successful publish (no commit, just a lightweight tag)
+          - task: Bash@3
+            displayName: 'Tag Release'
+            inputs:
+              targetType: inline
+              script: |
+                VERSION=$(ls $(Pipeline.Workspace)/packages/*.nupkg | sed 's/.*\.\([0-9]*\.[0-9]*\.[0-9]*.*\)\.nupkg/\1/')
+                echo "Tagging release: v$VERSION"
+
+                git config user.email "pipelines@devpossible.com"
+                git config user.name "Azure Pipelines"
+
+                # Create and push tag to origin (ADO)
+                git tag -a "v$VERSION" -m "Release v$VERSION"
+                git push origin "v$VERSION"
+
+                echo "Tagged and pushed v$VERSION"
