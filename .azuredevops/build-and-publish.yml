@@ -42,15 +42,10 @@ stages:
         useConfigFile: true
         configFilePath: 'GitVersion.yml'
 
-    # Debug: Show all GitVersion outputs
+    # Show calculated version
     - script: |
-        echo "GitVersion outputs:"
-        echo "nuGetVersionV2: $(GitVersion.nuGetVersionV2)"
-        echo "fullSemVer: $(GitVersion.fullSemVer)"
-        echo "semVer: $(GitVersion.semVer)"
-        echo "majorMinorPatch: $(GitVersion.majorMinorPatch)"
-        env | grep -i gitversion || echo "No GITVERSION env vars found"
-      displayName: 'Debug GitVersion Outputs'
+        echo "GitVersion: $(GitVersion.fullSemVer)"
+      displayName: 'Show Version'
 
     - task: UseDotNet@2
       displayName: 'Use .NET SDK'
@@ -69,7 +64,7 @@ stages:
       inputs:
         command: 'build'
         projects: '$(projectPath)'
-        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.nuGetVersionV2) --no-restore'
+        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.fullSemVer) --no-restore'
 
     - task: DotNetCoreCLI@2
       displayName: 'Pack'
@@ -79,7 +74,7 @@ stages:
         configuration: '$(buildConfiguration)'
         nobuild: true
         versioningScheme: 'byEnvVar'
-        versionEnvVar: 'GITVERSION_NUGETVERSIONV2'
+        versionEnvVar: 'GITVERSION_FULLSEMVER'
         outputDir: '$(Build.ArtifactStagingDirectory)/packages'
 
     - task: PublishBuildArtifacts@1
@@ -91,17 +86,8 @@ stages:
 
     # Save version info as artifact for downstream stages
     - script: |
-        echo "Version: $(GitVersion.nuGetVersionV2)"
-        echo "SemVer: $(GitVersion.semVer)"
-        echo "Major: $(GitVersion.major)"
-        echo "Minor: $(GitVersion.minor)"
-        echo "Patch: $(GitVersion.patch)"
-        echo "PreReleaseTag: $(GitVersion.preReleaseTag)"
-        echo "CommitsSinceVersionSource: $(GitVersion.commitsSinceVersionSource)"
-
-        # Save version to file for downstream stages
-        echo "$(GitVersion.nuGetVersionV2)" > $(Build.ArtifactStagingDirectory)/version.txt
-      displayName: 'Show Version Info'
+        echo "$(GitVersion.fullSemVer)" > $(Build.ArtifactStagingDirectory)/version.txt
+      displayName: 'Save Version for Publish Stage'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Version Artifact'
