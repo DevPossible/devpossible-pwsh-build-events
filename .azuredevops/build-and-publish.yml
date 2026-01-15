@@ -45,7 +45,7 @@ stages:
 
     # Show calculated version
     - script: |
-        echo "GitVersion: $(GitVersion.fullSemVer)"
+        echo "GitVersion: $(GitVersion.majorMinorPatch)"
       displayName: 'Show Version'
 
     - task: UseDotNet@2
@@ -65,7 +65,7 @@ stages:
       inputs:
         command: 'build'
         projects: '$(projectPath)'
-        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.fullSemVer) --no-restore'
+        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.majorMinorPatch) --no-restore'
 
     - task: DotNetCoreCLI@2
       displayName: 'Pack'
@@ -75,7 +75,7 @@ stages:
         configuration: '$(buildConfiguration)'
         nobuild: true
         versioningScheme: 'byEnvVar'
-        versionEnvVar: 'GITVERSION_FULLSEMVER'
+        versionEnvVar: 'GITVERSION_MAJORMINORPATCH'
         outputDir: '$(Build.ArtifactStagingDirectory)/packages'
 
     - task: PublishBuildArtifacts@1
@@ -87,7 +87,7 @@ stages:
 
     # Save version info as artifact for downstream stages
     - script: |
-        echo "$(GitVersion.fullSemVer)" > $(Build.ArtifactStagingDirectory)/version.txt
+        echo "$(GitVersion.majorMinorPatch)" > $(Build.ArtifactStagingDirectory)/version.txt
       displayName: 'Save Version for Publish Stage'
 
     - task: PublishBuildArtifacts@1
