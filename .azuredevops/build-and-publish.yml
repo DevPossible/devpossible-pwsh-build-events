@@ -1,0 +1,113 @@
+# Build and Publish NuGet Package Pipeline
+# Uses GitVersion for conventional commit versioning
+# Publishes to nuget.org on main branch builds
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  projectPath: 'src/DevPossible.PwshBuildEvents/DevPossible.PwshBuildEvents.csproj'
+
+stages:
+- stage: Build
+  displayName: 'Build & Test'
+  jobs:
+  - job: Build
+    displayName: 'Build Package'
+    steps:
+    - checkout: self
+      fetchDepth: 0  # Full history needed for GitVersion
+
+    - task: gitversion/setup@3
+      displayName: 'Install GitVersion'
+      inputs:
+        versionSpec: '6.x'
+
+    - task: gitversion/execute@3
+      displayName: 'Calculate Version'
+      inputs:
+        useConfigFile: true
+        configFilePath: 'GitVersion.yml'
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore'
+      inputs:
+        command: 'restore'
+        projects: '**/*.csproj'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build'
+      inputs:
+        command: 'build'
+        projects: '$(projectPath)'
+        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.NuGetVersion) --no-restore'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack'
+      inputs:
+        command: 'pack'
+        packagesToPack: '$(projectPath)'
+        configuration: '$(buildConfiguration)'
+        nobuild: true
+        versioningScheme: 'byEnvVar'
+        versionEnvVar: 'GitVersion.NuGetVersion'
+        outputDir: '$(Build.ArtifactStagingDirectory)/packages'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifacts'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
+        ArtifactName: 'packages'
+        publishLocation: 'Container'
+
+    # Show version info for verification
+    - script: |
+        echo "Version: $(GitVersion.NuGetVersion)"
+        echo "SemVer: $(GitVersion.SemVer)"
+        echo "Major: $(GitVersion.Major)"
+        echo "Minor: $(GitVersion.Minor)"
+        echo "Patch: $(GitVersion.Patch)"
+        echo "PreReleaseTag: $(GitVersion.PreReleaseTag)"
+        echo "CommitsSinceVersionSource: $(GitVersion.CommitsSinceVersionSource)"
+      displayName: 'Show Version Info'
+
+- stage: Publish
+  displayName: 'Publish to NuGet.org'
+  dependsOn: Build
+  # Only publish on main branch commits (PR merges), not on PR builds
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - deployment: PublishNuGet
+    displayName: 'Publish to NuGet.org'
+    environment: 'nuget-org'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: packages
+
+          - task: NuGetCommand@2
+            displayName: 'Push to NuGet.org'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Pipeline.Workspace)/packages/*.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'NuGet.org'

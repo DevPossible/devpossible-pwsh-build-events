@@ -1,0 +1,74 @@
+# GitVersion Configuration
+# Uses Conventional Commits for version calculation
+# See: https://gitversion.net/docs/reference/configuration
+
+# Start at 1.0.0 for initial release
+next-version: 1.0.0
+
+# Use mainline mode for simpler versioning on main branch
+mode: Mainline
+
+# Branch configuration
+branches:
+  main:
+    regex: ^main$
+    mode: ContinuousDeployment
+    tag: ''
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    source-branches: []
+    is-source-branch-for: []
+
+  feature:
+    regex: ^features?[/-]
+    mode: ContinuousDelivery
+    tag: alpha
+    increment: Minor
+    source-branches:
+      - main
+
+  bugfix:
+    regex: ^(bug)?fix(es)?[/-]
+    mode: ContinuousDelivery
+    tag: beta
+    increment: Patch
+    source-branches:
+      - main
+
+  release:
+    regex: ^releases?[/-]
+    mode: ContinuousDelivery
+    tag: rc
+    increment: None
+    source-branches:
+      - main
+
+  pull-request:
+    regex: ^(pull|pull\-requests|pr)[/-]
+    mode: ContinuousDelivery
+    tag: pr
+    increment: Inherit
+    source-branches:
+      - main
+      - feature
+      - bugfix
+
+# Conventional Commits configuration
+major-version-bump-message: '^(feat|fix|refactor|perf|build|ci|docs|style|test|chore)(\(.+\))?!:|BREAKING CHANGE:'
+minor-version-bump-message: '^feat(\(.+\))?:'
+patch-version-bump-message: '^fix(\(.+\))?:'
+
+# Commit message incrementing
+commit-message-incrementing: Enabled
+
+# Tag prefix (if using tags like v1.0.0)
+tag-prefix: 'v'
+
+# Assembly versioning
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatchTag
+assembly-informational-format: '{SemVer}+{ShortSha}'
+
+# Update build number in Azure DevOps
+update-build-number: true
