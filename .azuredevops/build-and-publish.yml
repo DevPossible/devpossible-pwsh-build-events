@@ -224,6 +224,4 @@ stages:
                 ### NuGet Package
                 [DevPossible.PwshBuildEvents $(ReleaseVersion) on NuGet.org](https://www.nuget.org/packages/DevPossible.PwshBuildEvents/$(ReleaseVersion))
               assets: '$(Pipeline.Workspace)/packages/*.nupkg'
-              addChangeLog: true
-              changeLogCompareToRelease: 'lastFullRelease'
-              changeLogType: 'commitBased'
+              addChangeLog: false
