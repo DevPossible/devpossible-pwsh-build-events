@@ -1,14 +1,10 @@
-# Mirror to GitHub Pipeline
-# Syncs this repository to GitHub on every commit to main
+# Mirror to GitHub Pipeline (DEPRECATED)
+# Mirroring is now handled by the Build and Publish pipeline
+# This pipeline is kept for manual runs only
+#
 # GitHub repo: https://github.com/DevPossible/devpossible-pwsh-build-events
 
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    exclude:
-      - '.azuredevops/*'
+trigger: none  # Disabled - mirroring now part of Build and Publish pipeline
 
 pool:
   vmImage: 'ubuntu-latest'
