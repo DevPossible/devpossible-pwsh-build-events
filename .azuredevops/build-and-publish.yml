@@ -1,6 +1,7 @@
 # Build and Publish NuGet Package Pipeline
 # Uses GitVersion for conventional commit versioning
 # Publishes to nuget.org on main branch builds
+# Creates GitHub Release after successful publish
 
 trigger:
   branches:
@@ -72,13 +73,13 @@ stages:
         outputDir: '$(Build.ArtifactStagingDirectory)/packages'
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifacts'
+      displayName: 'Publish Package Artifacts'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
         ArtifactName: 'packages'
         publishLocation: 'Container'
 
-    # Show version info for verification
+    # Save version info as artifact for downstream stages
     - script: |
         echo "Version: $(GitVersion.NuGetVersion)"
         echo "SemVer: $(GitVersion.SemVer)"
@@ -87,16 +88,23 @@ stages:
         echo "Patch: $(GitVersion.Patch)"
         echo "PreReleaseTag: $(GitVersion.PreReleaseTag)"
         echo "CommitsSinceVersionSource: $(GitVersion.CommitsSinceVersionSource)"
+
+        # Save version to file for downstream stages
+        echo "$(GitVersion.NuGetVersion)" > $(Build.ArtifactStagingDirectory)/version.txt
       displayName: 'Show Version Info'
 
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Version Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/version.txt'
+        ArtifactName: 'version'
+        publishLocation: 'Container'
+
 - stage: Publish
-  displayName: 'Publish to NuGet.org'
+  displayName: 'Publish to NuGet.org & GitHub'
   dependsOn: Build
   # Only publish on main branch commits (PR merges), not on PR builds
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
-  variables:
-    # Get version from Build stage
-    GitVersion.NuGetVersion: $[ stageDependencies.Build.Build.outputs['GitVersion.NuGetVersion'] ]
   jobs:
   - deployment: PublishNuGet
     displayName: 'Publish to NuGet.org'
@@ -112,28 +120,75 @@ stages:
           - download: current
             artifact: packages
 
+          - download: current
+            artifact: version
+
+          # Read version from artifact
+          - task: Bash@3
+            name: ReadVersion
+            displayName: 'Read Version'
+            inputs:
+              targetType: inline
+              script: |
+                VERSION=$(cat $(Pipeline.Workspace)/version/version.txt)
+                echo "Version: $VERSION"
+                echo "##vso[task.setvariable variable=ReleaseVersion]$VERSION"
+
           - task: NuGetCommand@2
             displayName: 'Push to NuGet.org'
             inputs:
               command: 'push'
               packagesToPush: '$(Pipeline.Workspace)/packages/*.nupkg'
               nuGetFeedType: 'external'
-              publishFeedCredentials: 'NuGet.org'
+              publishFeedCredentials: 'nuget.org_DevPossible'
 
-          # Tag the repo after successful publish (no commit, just a lightweight tag)
+          # Tag the repo after successful publish
           - task: Bash@3
             displayName: 'Tag Release'
             inputs:
               targetType: inline
               script: |
-                VERSION=$(ls $(Pipeline.Workspace)/packages/*.nupkg | sed 's/.*\.\([0-9]*\.[0-9]*\.[0-9]*.*\)\.nupkg/\1/')
+                VERSION="$(ReleaseVersion)"
                 echo "Tagging release: v$VERSION"
 
                 git config user.email "pipelines@devpossible.com"
                 git config user.name "Azure Pipelines"
 
-                # Create and push tag to origin (ADO)
-                git tag -a "v$VERSION" -m "Release v$VERSION"
-                git push origin "v$VERSION"
+                # Check if tag already exists
+                if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+                  echo "Tag v$VERSION already exists, skipping"
+                else
+                  git tag -a "v$VERSION" -m "Release v$VERSION"
+                  git push origin "v$VERSION"
+                  echo "Tagged and pushed v$VERSION"
+                fi
 
-                echo "Tagged and pushed v$VERSION"
+          # Create GitHub Release
+          - task: GitHubRelease@1
+            displayName: 'Create GitHub Release'
+            inputs:
+              gitHubConnection: 'github.com_DevPossible'
+              repositoryName: 'DevPossible/devpossible-pwsh-build-events'
+              action: 'create'
+              target: '$(Build.SourceVersion)'
+              tagSource: 'userSpecifiedTag'
+              tag: 'v$(ReleaseVersion)'
+              title: 'v$(ReleaseVersion)'
+              releaseNotesSource: 'inline'
+              releaseNotesInline: |
+                ## DevPossible.PwshBuildEvents v$(ReleaseVersion)
+
+                ### Installation
+                ```
+                dotnet add package DevPossible.PwshBuildEvents --version $(ReleaseVersion)
+                ```
+
+                ### What's Changed
+                See the [full changelog](https://github.com/DevPossible/devpossible-pwsh-build-events/commits/v$(ReleaseVersion)) for details.
+
+                ### NuGet Package
+                [DevPossible.PwshBuildEvents $(ReleaseVersion) on NuGet.org](https://www.nuget.org/packages/DevPossible.PwshBuildEvents/$(ReleaseVersion))
+              assets: '$(Pipeline.Workspace)/packages/*.nupkg'
+              addChangeLog: true
+              changeLogCompareToRelease: 'lastFullRelease'
+              changeLogType: 'commitBased'
