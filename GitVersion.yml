@@ -21,14 +21,27 @@ update-build-number: true
 # Branch configuration
 branches:
   main:
-    is-release-branch: true
+    regex: ^master$|^main$
+    mode: ContinuousDelivery
     label: ''
     increment: Patch
-    prevent-increment:
-      when-current-commit-tagged: true
+    is-release-branch: true
+    source-branches: []
+    tracks-release-branches: false
+    is-source-branch-for: []
+    pre-release-weight: 55000
   develop:
+    regex: ^dev(elop)?(ment)?$
+    mode: ContinuousDeployment
     label: alpha
     increment: Minor
+    source-branches:
+      - main
   feature:
+    regex: ^features?[/-]
+    mode: ContinuousDeployment
     label: alpha
     increment: Inherit
+    source-branches:
+      - develop
+      - main
