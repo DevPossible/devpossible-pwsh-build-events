@@ -1,8 +1,8 @@
 # GitVersion 6.x Configuration
-# Calculates version from tags + conventional commits
 # See: https://gitversion.net/docs/reference/configuration
 
-workflow: GitFlow/v1
+# Use semantic versioning mode
+mode: ContinuousDeployment
 
 # Starting version if no tags exist
 next-version: 1.0.0
@@ -11,33 +11,12 @@ next-version: 1.0.0
 tag-prefix: 'v'
 
 # Conventional Commits - determine version bump from commit messages
-major-version-bump-message: '(\+semver:\s?(major|breaking))|(^(feat|fix|refactor|perf|build|ci|docs|style|test|chore)(\(.+\))?!:)|(BREAKING CHANGE:)'
+major-version-bump-message: '(\+semver:\s?(major|breaking))|(BREAKING CHANGE:)'
 minor-version-bump-message: '(\+semver:\s?minor)|(^feat(\(.+\))?:)'
 patch-version-bump-message: '(\+semver:\s?patch)|(^fix(\(.+\))?:)'
-no-bump-message: '(\+semver:\s?(none|skip))'
 
 # Use commit messages to determine increment
 commit-message-incrementing: Enabled
-
-# Branch configuration
-branches:
-  main:
-    mode: ContinuousDeployment
-    label: ''
-    increment: Patch
-    regex: ^main$
-    is-release-branch: true
-
-  pull-request:
-    mode: ContinuousDelivery
-    label: 'pr.{BranchName}'
-    increment: Inherit
-    regex: ^(pull|pull-requests|pr)[/-]
-
-# Assembly info format
-assembly-versioning-scheme: MajorMinorPatch
-assembly-file-versioning-scheme: MajorMinorPatch
-assembly-informational-format: '{SemVer}+{ShortSha}'
 
 # Update Azure DevOps build number
 update-build-number: true
