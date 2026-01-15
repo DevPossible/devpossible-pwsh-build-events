@@ -42,6 +42,16 @@ stages:
         useConfigFile: true
         configFilePath: 'GitVersion.yml'
 
+    # Debug: Show all GitVersion outputs
+    - script: |
+        echo "GitVersion outputs:"
+        echo "nuGetVersionV2: $(GitVersion.nuGetVersionV2)"
+        echo "fullSemVer: $(GitVersion.fullSemVer)"
+        echo "semVer: $(GitVersion.semVer)"
+        echo "majorMinorPatch: $(GitVersion.majorMinorPatch)"
+        env | grep -i gitversion || echo "No GITVERSION env vars found"
+      displayName: 'Debug GitVersion Outputs'
+
     - task: UseDotNet@2
       displayName: 'Use .NET SDK'
       inputs:
@@ -59,7 +69,7 @@ stages:
       inputs:
         command: 'build'
         projects: '$(projectPath)'
-        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.NuGetVersion) --no-restore'
+        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.nuGetVersionV2) --no-restore'
 
     - task: DotNetCoreCLI@2
       displayName: 'Pack'
@@ -69,7 +79,7 @@ stages:
         configuration: '$(buildConfiguration)'
         nobuild: true
         versioningScheme: 'byEnvVar'
-        versionEnvVar: 'GitVersion.NuGetVersion'
+        versionEnvVar: 'GITVERSION_NUGETVERSIONV2'
         outputDir: '$(Build.ArtifactStagingDirectory)/packages'
 
     - task: PublishBuildArtifacts@1
@@ -81,16 +91,16 @@ stages:
 
     # Save version info as artifact for downstream stages
     - script: |
-        echo "Version: $(GitVersion.NuGetVersion)"
-        echo "SemVer: $(GitVersion.SemVer)"
-        echo "Major: $(GitVersion.Major)"
-        echo "Minor: $(GitVersion.Minor)"
-        echo "Patch: $(GitVersion.Patch)"
-        echo "PreReleaseTag: $(GitVersion.PreReleaseTag)"
-        echo "CommitsSinceVersionSource: $(GitVersion.CommitsSinceVersionSource)"
+        echo "Version: $(GitVersion.nuGetVersionV2)"
+        echo "SemVer: $(GitVersion.semVer)"
+        echo "Major: $(GitVersion.major)"
+        echo "Minor: $(GitVersion.minor)"
+        echo "Patch: $(GitVersion.patch)"
+        echo "PreReleaseTag: $(GitVersion.preReleaseTag)"
+        echo "CommitsSinceVersionSource: $(GitVersion.commitsSinceVersionSource)"
 
         # Save version to file for downstream stages
-        echo "$(GitVersion.NuGetVersion)" > $(Build.ArtifactStagingDirectory)/version.txt
+        echo "$(GitVersion.nuGetVersionV2)" > $(Build.ArtifactStagingDirectory)/version.txt
       displayName: 'Show Version Info'
 
     - task: PublishBuildArtifacts@1
