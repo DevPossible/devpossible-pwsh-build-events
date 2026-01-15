@@ -4,6 +4,9 @@
 # Use semantic versioning mode
 mode: ContinuousDeployment
 
+# Allow parsing of loose version formats
+semantic-version-format: Loose
+
 # Starting version if no tags exist
 next-version: 1.0.0
 
