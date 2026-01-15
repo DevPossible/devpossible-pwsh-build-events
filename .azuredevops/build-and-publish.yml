@@ -227,15 +227,16 @@ stages:
           echo "##vso[task.setvariable variable=ReleaseVersion]$VERSION"
 
     - task: GitHubRelease@1
-      displayName: 'Create GitHub Release'
+      displayName: 'Create or Update GitHub Release'
       inputs:
         gitHubConnection: 'github.com_DevPossible'
         repositoryName: 'DevPossible/devpossible-pwsh-build-events'
-        action: 'create'
+        action: 'edit'
         target: '$(Build.SourceVersion)'
         tagSource: 'userSpecifiedTag'
         tag: 'v$(ReleaseVersion)'
         title: 'v$(ReleaseVersion)'
+        isPreRelease: false
         releaseNotesSource: 'inline'
         releaseNotesInline: |
           ## DevPossible.PwshBuildEvents v$(ReleaseVersion)
