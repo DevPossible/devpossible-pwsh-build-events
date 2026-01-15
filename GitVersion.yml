@@ -17,3 +17,18 @@ commit-message-incrementing: Enabled
 
 # Update Azure DevOps build number
 update-build-number: true
+
+# Branch configuration
+branches:
+  main:
+    is-release-branch: true
+    label: ''
+    increment: Patch
+    prevent-increment:
+      when-current-commit-tagged: true
+  develop:
+    label: alpha
+    increment: Minor
+  feature:
+    label: alpha
+    increment: Inherit
