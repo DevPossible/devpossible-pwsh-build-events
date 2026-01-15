@@ -187,12 +187,20 @@ stages:
                 git config user.name "Azure Pipelines"
 
                 if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-                  echo "Tag v$VERSION already exists, skipping"
+                  echo "Tag v$VERSION already exists locally, skipping creation"
                 else
                   git tag -a "v$VERSION" -m "Release v$VERSION"
-                  git push origin "v$VERSION"
-                  echo "Tagged and pushed v$VERSION"
                 fi
+
+                # Push tag to Azure DevOps
+                git push origin "v$VERSION" --force 2>/dev/null || echo "Tag already on origin"
+
+                # Push tag to GitHub for the release
+                git remote add github "https://$(GitHubPAT)@github.com/$(githubRepo).git" 2>/dev/null || true
+                git push github "v$VERSION" --force
+                echo "Tag v$VERSION pushed to GitHub"
+            env:
+              GitHubPAT: $(GitHubPAT)
 
 - stage: GitHubRelease
   displayName: 'Create GitHub Release'
