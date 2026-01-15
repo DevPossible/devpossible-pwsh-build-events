@@ -42,6 +42,11 @@ stages:
         useConfigFile: true
         configFilePath: 'GitVersion.yml'
 
+    # Show calculated version
+    - script: |
+        echo "GitVersion: $(GitVersion.fullSemVer)"
+      displayName: 'Show Version'
+
     - task: UseDotNet@2
       displayName: 'Use .NET SDK'
       inputs:
@@ -59,7 +64,7 @@ stages:
       inputs:
         command: 'build'
         projects: '$(projectPath)'
-        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.NuGetVersion) --no-restore'
+        arguments: '-c $(buildConfiguration) -p:Version=$(GitVersion.fullSemVer) --no-restore'
 
     - task: DotNetCoreCLI@2
       displayName: 'Pack'
@@ -69,7 +74,7 @@ stages:
         configuration: '$(buildConfiguration)'
         nobuild: true
         versioningScheme: 'byEnvVar'
-        versionEnvVar: 'GitVersion.NuGetVersion'
+        versionEnvVar: 'GITVERSION_FULLSEMVER'
         outputDir: '$(Build.ArtifactStagingDirectory)/packages'
 
     - task: PublishBuildArtifacts@1
@@ -81,17 +86,8 @@ stages:
 
     # Save version info as artifact for downstream stages
     - script: |
-        echo "Version: $(GitVersion.NuGetVersion)"
-        echo "SemVer: $(GitVersion.SemVer)"
-        echo "Major: $(GitVersion.Major)"
-        echo "Minor: $(GitVersion.Minor)"
-        echo "Patch: $(GitVersion.Patch)"
-        echo "PreReleaseTag: $(GitVersion.PreReleaseTag)"
-        echo "CommitsSinceVersionSource: $(GitVersion.CommitsSinceVersionSource)"
-
-        # Save version to file for downstream stages
-        echo "$(GitVersion.NuGetVersion)" > $(Build.ArtifactStagingDirectory)/version.txt
-      displayName: 'Show Version Info'
+        echo "$(GitVersion.fullSemVer)" > $(Build.ArtifactStagingDirectory)/version.txt
+      displayName: 'Save Version for Publish Stage'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish Version Artifact'

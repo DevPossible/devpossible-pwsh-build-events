@@ -1,14 +1,11 @@
 # GitVersion 6.x Configuration
 # See: https://gitversion.net/docs/reference/configuration
 
-# Use semantic versioning mode
-mode: ContinuousDeployment
-
-# Starting version if no tags exist
-next-version: 1.0.0
-
 # Tag prefix for version tags
 tag-prefix: 'v'
+
+# Allow parsing of loose version formats
+semantic-version-format: Loose
 
 # Conventional Commits - determine version bump from commit messages
 major-version-bump-message: '(\+semver:\s?(major|breaking))|(BREAKING CHANGE:)'
