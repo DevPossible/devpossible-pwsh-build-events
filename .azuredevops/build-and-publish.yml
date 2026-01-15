@@ -132,13 +132,12 @@ stages:
         GitHubPAT: $(GitHubPAT)
 
 - stage: Publish
-  displayName: 'Publish to NuGet.org & GitHub'
+  displayName: 'Publish to NuGet.org'
   dependsOn: Mirror
-  # Only publish after successful mirror
   condition: succeeded()
   jobs:
   - deployment: PublishNuGet
-    displayName: 'Publish to NuGet.org'
+    displayName: 'Push to NuGet.org'
     environment: 'nuget-org'
     strategy:
       runOnce:
@@ -154,7 +153,6 @@ stages:
           - download: current
             artifact: version
 
-          # Read version from artifact
           - task: Bash@3
             name: ReadVersion
             displayName: 'Read Version'
@@ -163,7 +161,7 @@ stages:
               script: |
                 VERSION=$(cat $(Pipeline.Workspace)/version/version.txt)
                 echo "Version: $VERSION"
-                echo "##vso[task.setvariable variable=ReleaseVersion]$VERSION"
+                echo "##vso[task.setvariable variable=ReleaseVersion;isOutput=true]$VERSION"
 
           - task: Bash@3
             displayName: 'Push to NuGet.org'
@@ -177,19 +175,17 @@ stages:
             env:
               NuGetApiKey: $(NuGetApiKey)
 
-          # Tag the repo after successful publish
           - task: Bash@3
             displayName: 'Tag Release'
             inputs:
               targetType: inline
               script: |
-                VERSION="$(ReleaseVersion)"
+                VERSION="$(ReadVersion.ReleaseVersion)"
                 echo "Tagging release: v$VERSION"
 
                 git config user.email "pipelines@devpossible.com"
                 git config user.name "Azure Pipelines"
 
-                # Check if tag already exists
                 if git rev-parse "v$VERSION" >/dev/null 2>&1; then
                   echo "Tag v$VERSION already exists, skipping"
                 else
@@ -198,30 +194,53 @@ stages:
                   echo "Tagged and pushed v$VERSION"
                 fi
 
-          # Create GitHub Release
-          - task: GitHubRelease@1
-            displayName: 'Create GitHub Release'
-            inputs:
-              gitHubConnection: 'github.com_DevPossible'
-              repositoryName: 'DevPossible/devpossible-pwsh-build-events'
-              action: 'create'
-              target: '$(Build.SourceVersion)'
-              tagSource: 'userSpecifiedTag'
-              tag: 'v$(ReleaseVersion)'
-              title: 'v$(ReleaseVersion)'
-              releaseNotesSource: 'inline'
-              releaseNotesInline: |
-                ## DevPossible.PwshBuildEvents v$(ReleaseVersion)
+- stage: GitHubRelease
+  displayName: 'Create GitHub Release'
+  dependsOn: Publish
+  condition: succeeded()
+  jobs:
+  - job: CreateRelease
+    displayName: 'Create GitHub Release'
+    steps:
+    - download: current
+      artifact: packages
 
-                ### Installation
-                ```
-                dotnet add package DevPossible.PwshBuildEvents --version $(ReleaseVersion)
-                ```
+    - download: current
+      artifact: version
 
-                ### What's Changed
-                See the [full changelog](https://github.com/DevPossible/devpossible-pwsh-build-events/commits/v$(ReleaseVersion)) for details.
+    - task: Bash@3
+      name: ReadVersion
+      displayName: 'Read Version'
+      inputs:
+        targetType: inline
+        script: |
+          VERSION=$(cat $(Pipeline.Workspace)/version/version.txt)
+          echo "Version: $VERSION"
+          echo "##vso[task.setvariable variable=ReleaseVersion]$VERSION"
 
-                ### NuGet Package
-                [DevPossible.PwshBuildEvents $(ReleaseVersion) on NuGet.org](https://www.nuget.org/packages/DevPossible.PwshBuildEvents/$(ReleaseVersion))
-              assets: '$(Pipeline.Workspace)/packages/*.nupkg'
-              addChangeLog: false
+    - task: GitHubRelease@1
+      displayName: 'Create GitHub Release'
+      inputs:
+        gitHubConnection: 'github.com_DevPossible'
+        repositoryName: 'DevPossible/devpossible-pwsh-build-events'
+        action: 'create'
+        target: '$(Build.SourceVersion)'
+        tagSource: 'userSpecifiedTag'
+        tag: 'v$(ReleaseVersion)'
+        title: 'v$(ReleaseVersion)'
+        releaseNotesSource: 'inline'
+        releaseNotesInline: |
+          ## DevPossible.PwshBuildEvents v$(ReleaseVersion)
+
+          ### Installation
+          ```
+          dotnet add package DevPossible.PwshBuildEvents --version $(ReleaseVersion)
+          ```
+
+          ### What's Changed
+          See the [full changelog](https://github.com/DevPossible/devpossible-pwsh-build-events/commits/v$(ReleaseVersion)) for details.
+
+          ### NuGet Package
+          [DevPossible.PwshBuildEvents $(ReleaseVersion) on NuGet.org](https://www.nuget.org/packages/DevPossible.PwshBuildEvents/$(ReleaseVersion))
+        assets: '$(Pipeline.Workspace)/packages/*.nupkg'
+        addChangeLog: false
