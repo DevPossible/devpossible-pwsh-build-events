@@ -1,0 +1,51 @@
+# Mirror to GitHub Pipeline
+# Syncs this repository to GitHub on every commit to main
+# GitHub repo: https://github.com/DevPossible/devpossible-pwsh-build-events
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    exclude:
+      - '.azuredevops/*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  githubRepo: 'DevPossible/devpossible-pwsh-build-events'
+
+jobs:
+- job: Mirror
+  displayName: 'Mirror to GitHub'
+  steps:
+  - checkout: self
+    fetchDepth: 0
+    persistCredentials: true
+
+  - task: Bash@3
+    displayName: 'Configure Git'
+    inputs:
+      targetType: inline
+      script: |
+        git config user.email "pipelines@devpossible.com"
+        git config user.name "Azure Pipelines"
+
+  - task: Bash@3
+    displayName: 'Push to GitHub'
+    inputs:
+      targetType: inline
+      script: |
+        echo "Adding GitHub remote..."
+        git remote add github "https://$(GitHubPAT)@github.com/$(githubRepo).git"
+
+        echo "Pushing all branches..."
+        git push github --all --force
+
+        echo "Pushing tags..."
+        git push github --tags --force
+
+        echo "Mirror complete!"
+    env:
+      GitHubPAT: $(GitHubPAT)

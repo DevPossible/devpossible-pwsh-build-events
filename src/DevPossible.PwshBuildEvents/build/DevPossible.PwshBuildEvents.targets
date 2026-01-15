@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Default property values -->
+  <PropertyGroup>
+    <PwshBuildEventsEnabled Condition="'$(PwshBuildEventsEnabled)' == ''">true</PwshBuildEventsEnabled>
+    <PwshBuildEventsFolder Condition="'$(PwshBuildEventsFolder)' == ''">Properties</PwshBuildEventsFolder>
+    <PwshExecutable Condition="'$(PwshExecutable)' == ''">pwsh</PwshExecutable>
+    <PwshBuildEventsCopySamples Condition="'$(PwshBuildEventsCopySamples)' == ''">true</PwshBuildEventsCopySamples>
+
+    <!-- Computed paths -->
+    <_PwshPreBuildScript>$(MSBuildProjectDirectory)\$(PwshBuildEventsFolder)\prebuild.ps1</_PwshPreBuildScript>
+    <_PwshPostBuildScript>$(MSBuildProjectDirectory)\$(PwshBuildEventsFolder)\postbuild.ps1</_PwshPostBuildScript>
+    <_PwshScriptFolder>$(MSBuildProjectDirectory)\$(PwshBuildEventsFolder)</_PwshScriptFolder>
+
+    <!-- Path to sample scripts in the NuGet package -->
+    <_PwshPackageContentPath>$(MSBuildThisFileDirectory)..\contentFiles\any\any\Properties</_PwshPackageContentPath>
+  </PropertyGroup>
+
+  <!--
+    Copy sample scripts to the project's Properties folder on first build.
+    Only copies if the scripts don't already exist (won't overwrite user modifications).
+    Set PwshBuildEventsCopySamples=false to disable this behavior.
+  -->
+  <Target Name="PwshCopySampleScripts"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(PwshBuildEventsEnabled)' == 'true' AND '$(PwshBuildEventsCopySamples)' == 'true'">
+
+    <!-- Ensure the Properties folder exists -->
+    <MakeDir Directories="$(_PwshScriptFolder)" Condition="!Exists('$(_PwshScriptFolder)')" />
+
+    <!-- Copy prebuild.ps1 if it doesn't exist -->
+    <Copy SourceFiles="$(_PwshPackageContentPath)\prebuild.ps1"
+          DestinationFiles="$(_PwshPreBuildScript)"
+          Condition="Exists('$(_PwshPackageContentPath)\prebuild.ps1') AND !Exists('$(_PwshPreBuildScript)')"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="_PwshCopiedPreBuild" />
+    </Copy>
+    <Message Importance="high"
+             Text="Created sample pre-build script: $(_PwshPreBuildScript)"
+             Condition="'@(_PwshCopiedPreBuild)' != ''" />
+
+    <!-- Copy postbuild.ps1 if it doesn't exist -->
+    <Copy SourceFiles="$(_PwshPackageContentPath)\postbuild.ps1"
+          DestinationFiles="$(_PwshPostBuildScript)"
+          Condition="Exists('$(_PwshPackageContentPath)\postbuild.ps1') AND !Exists('$(_PwshPostBuildScript)')"
+          SkipUnchangedFiles="true">
+      <Output TaskParameter="CopiedFiles" ItemName="_PwshCopiedPostBuild" />
+    </Copy>
+    <Message Importance="high"
+             Text="Created sample post-build script: $(_PwshPostBuildScript)"
+             Condition="'@(_PwshCopiedPostBuild)' != ''" />
+  </Target>
+
+  <!--
+    Common environment variables for both pre-build and post-build scripts.
+    These mirror the macros available in Visual Studio's built-in build events.
+    All variables are prefixed with PWSH_ to avoid conflicts.
+
+    Note: Variables containing semicolons (like DefineConstants, TargetFrameworks)
+    are converted to comma-separated values to avoid parsing issues.
+  -->
+  <PropertyGroup>
+    <!-- Convert semicolon-separated values to comma-separated for safe passing -->
+    <_PwshDefineConstants>$([System.String]::Copy('$(DefineConstants)').Replace(';', ','))</_PwshDefineConstants>
+    <_PwshTargetFrameworks>$([System.String]::Copy('$(TargetFrameworks)').Replace(';', ','))</_PwshTargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_PwshCommonEnvVars Include="
+      PWSH_PROJECT_DIR=$(MSBuildProjectDirectory);
+      PWSH_PROJECT_NAME=$(MSBuildProjectName);
+      PWSH_PROJECT_FILE_NAME=$(MSBuildProjectFile);
+      PWSH_PROJECT_PATH=$(MSBuildProjectFullPath);
+      PWSH_PROJECT_EXT=$(MSBuildProjectExtension);
+      PWSH_CONFIGURATION=$(Configuration);
+      PWSH_PLATFORM=$(Platform);
+      PWSH_PLATFORM_TARGET=$(PlatformTarget);
+      PWSH_TARGET_FRAMEWORK=$(TargetFramework);
+      PWSH_TARGET_FRAMEWORKS=$(_PwshTargetFrameworks);
+      PWSH_RUNTIME_IDENTIFIER=$(RuntimeIdentifier);
+      PWSH_ASSEMBLY_NAME=$(AssemblyName);
+      PWSH_ROOT_NAMESPACE=$(RootNamespace);
+      PWSH_OUTPUT_TYPE=$(OutputType);
+      PWSH_SOLUTION_DIR=$(SolutionDir);
+      PWSH_SOLUTION_NAME=$(SolutionName);
+      PWSH_SOLUTION_FILE_NAME=$(SolutionFileName);
+      PWSH_SOLUTION_PATH=$(SolutionPath);
+      PWSH_SOLUTION_EXT=$(SolutionExt);
+      PWSH_INTERMEDIATE_OUTPUT_PATH=$(IntermediateOutputPath);
+      PWSH_BASE_INTERMEDIATE_OUTPUT_PATH=$(BaseIntermediateOutputPath);
+      PWSH_DEFINE_CONSTANTS=$(_PwshDefineConstants);
+      PWSH_DEBUG_SYMBOLS=$(DebugSymbols);
+      PWSH_DEBUG_TYPE=$(DebugType);
+      PWSH_OPTIMIZE=$(Optimize);
+      PWSH_LANGVERSION=$(LangVersion);
+      PWSH_NULLABLE=$(Nullable);
+      PWSH_IMPLICIT_USINGS=$(ImplicitUsings);
+      PWSH_VERSION=$(Version);
+      PWSH_ASSEMBLY_VERSION=$(AssemblyVersion);
+      PWSH_FILE_VERSION=$(FileVersion);
+      PWSH_INFORMATIONAL_VERSION=$(InformationalVersion);
+      PWSH_PACKAGE_VERSION=$(PackageVersion)" />
+  </ItemGroup>
+
+  <!--
+    Pre-Build Target
+    Runs before BeforeBuild to execute prebuild.ps1 if it exists.
+    Note: Target-related variables (TargetDir, TargetPath, etc.) are not available yet.
+  -->
+  <Target Name="PwshPreBuild"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(PwshBuildEventsEnabled)' == 'true' AND Exists('$(_PwshPreBuildScript)')">
+
+    <Message Importance="high" Text="Executing PowerShell pre-build script: $(_PwshPreBuildScript)" />
+
+    <Exec Command="$(PwshExecutable) -NoProfile -ExecutionPolicy Bypass -File &quot;$(_PwshPreBuildScript)&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="high"
+          StandardErrorImportance="high"
+          EnvironmentVariables="@(_PwshCommonEnvVars);
+            PWSH_OUT_DIR=$(OutDir);
+            PWSH_BASE_OUTPUT_PATH=$(BaseOutputPath)" />
+  </Target>
+
+  <!--
+    Post-Build Target
+    Runs after Build to execute postbuild.ps1 if it exists.
+    Includes all target-related variables that are now available.
+  -->
+  <Target Name="PwshPostBuild"
+          AfterTargets="Build"
+          Condition="'$(PwshBuildEventsEnabled)' == 'true' AND Exists('$(_PwshPostBuildScript)')">
+
+    <Message Importance="high" Text="Executing PowerShell post-build script: $(_PwshPostBuildScript)" />
+
+    <Exec Command="$(PwshExecutable) -NoProfile -ExecutionPolicy Bypass -File &quot;$(_PwshPostBuildScript)&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          ConsoleToMSBuild="true"
+          StandardOutputImportance="high"
+          StandardErrorImportance="high"
+          EnvironmentVariables="@(_PwshCommonEnvVars);
+            PWSH_OUT_DIR=$(OutDir);
+            PWSH_BASE_OUTPUT_PATH=$(BaseOutputPath);
+            PWSH_TARGET_DIR=$(TargetDir);
+            PWSH_TARGET_PATH=$(TargetPath);
+            PWSH_TARGET_FILE_NAME=$(TargetFileName);
+            PWSH_TARGET_NAME=$(TargetName);
+            PWSH_TARGET_EXT=$(TargetExt)" />
+  </Target>
+
+</Project>

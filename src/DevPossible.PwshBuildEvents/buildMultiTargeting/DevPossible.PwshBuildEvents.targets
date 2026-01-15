@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Multi-targeting projects (using <TargetFrameworks> plural) need special handling.
+    Import the main targets file, which will run once per target framework during inner builds.
+  -->
+  <Import Project="..\build\DevPossible.PwshBuildEvents.targets" />
+</Project>

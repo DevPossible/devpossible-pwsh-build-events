@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- This is a "tools-only" package with no runtime assembly -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- Package metadata -->
+    <PackageId>DevPossible.PwshBuildEvents</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>DevPossible LLC</Authors>
+    <Description>Enables PowerShell Core pre-build and post-build scripts for .NET projects. Just add prebuild.ps1 and postbuild.ps1 to your Properties folder.</Description>
+    <PackageTags>msbuild;powershell;pwsh;prebuild;postbuild;build-events</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/DevPossible/devpossible-pwsh-build-events</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DevPossible/devpossible-pwsh-build-events</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <Copyright>Copyright (c) DevPossible LLC</Copyright>
+    <PackageReleaseNotes>Initial release - PowerShell Core pre/post-build scripts for .NET projects</PackageReleaseNotes>
+
+    <!-- Development-only package -->
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+
+    <!-- Content files configuration -->
+    <ContentTargetFolders>contentFiles</ContentTargetFolders>
+  </PropertyGroup>
+
+  <!-- Include build targets in the package -->
+  <ItemGroup>
+    <None Include="build\**\*" Pack="true" PackagePath="build\" />
+    <None Include="buildMultiTargeting\**\*" Pack="true" PackagePath="buildMultiTargeting\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!--
+    Include sample scripts as content files.
+    These get copied to the consuming project's Properties folder on first install.
+    buildAction="None" - Files are not compiled
+    copyToOutput="false" - Files are not copied to bin/
+    flatten="false" - Preserves the Properties/ folder structure
+  -->
+  <ItemGroup>
+    <Content Include="contentFiles\**\*"
+             Pack="true"
+             PackagePath="contentFiles\"
+             BuildAction="None"
+             CopyToOutput="false"
+             Flatten="false" />
+  </ItemGroup>
+
+</Project>

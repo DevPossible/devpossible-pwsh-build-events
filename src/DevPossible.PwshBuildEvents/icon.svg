@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Background with PowerShell blue -->
+  <rect width="128" height="128" rx="16" fill="#012456"/>
+
+  <!-- PS> text in white -->
+  <text x="64" y="78"
+        font-family="Consolas, 'Courier New', monospace"
+        font-size="48"
+        font-weight="bold"
+        fill="white"
+        text-anchor="middle">PS&gt;</text>
+</svg>

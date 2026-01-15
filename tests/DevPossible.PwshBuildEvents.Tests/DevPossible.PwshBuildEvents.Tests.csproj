@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!--
+    Import the targets file directly for local testing.
+    When consumed as a NuGet package, this import happens automatically.
+  -->
+  <Import Project="..\..\src\DevPossible.PwshBuildEvents\build\DevPossible.PwshBuildEvents.targets" />
+
+</Project>

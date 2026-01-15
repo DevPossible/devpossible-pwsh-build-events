@@ -1,0 +1,30 @@
+# Build outputs
+.build/
+.dist/
+bin/
+obj/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+packages/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.ai-temp/
+
+# Debug tools
+.mcp-debug-tools/
+
+# Claude Code local settings
+.claude/
